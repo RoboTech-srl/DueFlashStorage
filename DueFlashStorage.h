@@ -16,7 +16,6 @@ Rewritten and modified by Sebastian Nilsson
 
 #include <Arduino.h>
 #include "flash_efc.h"
-#include "efc.h"
 
 // 1Kb of data
 #define DATA_LENGTH   ((IFLASH1_PAGE_SIZE/sizeof(byte))*4)
@@ -28,7 +27,7 @@ Rewritten and modified by Sebastian Nilsson
 #define FLASH_DEBUG
 
 #ifdef FLASH_DEBUG
-#define _FLASH_DEBUG(x) Serial.print(x);
+#define _FLASH_DEBUG(x) SerialUSB.print(x);
 #else
 #define _FLASH_DEBUG(x)
 #endif
