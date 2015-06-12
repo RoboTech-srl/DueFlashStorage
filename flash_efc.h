@@ -45,7 +45,6 @@
 #define FLASH_H_INCLUDED
 
 #include <Arduino.h>
-#include "efc.h"
 
 /* Internal Flash 0 base address. */
 #define IFLASH_ADDR     IFLASH0_ADDR
