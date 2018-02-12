@@ -41,6 +41,10 @@
  *
  */
 
+#include <Arduino.h>
+
+#if SAM3XA_SERIES
+
 #include <string.h>
 #include <assert.h>
 #include "flash_efc.h"
@@ -556,6 +560,97 @@ uint32_t flash_write(uint32_t ul_address, const void *p_buffer,
 
 
 /**
+ * \brief Fill a data block on flash.
+ *
+ * \note This function works in polling mode, and thus only returns when the
+ * data has been effectively written.
+ * \note For dual bank flash, this function doesn't support cross write from
+ * bank 0 to bank 1. In this case, flash_write must be called twice (ie for
+ * each bank).
+ *
+ * \param ul_address Write address.
+ * \param value Data value to fill.
+ * \param ul_size Size of data block in bytes.
+ * \param ul_erase_flag Flag to set if erase first.
+ *
+ * \return 0 if successful, otherwise returns an error code.
+ */
+uint32_t flash_fill(uint32_t ul_address, const uint8_t value,
+		uint32_t ul_size, uint32_t ul_erase_flag)
+{
+	Efc *p_efc;
+	uint32_t ul_fws_temp;
+	uint16_t us_page;
+	uint16_t us_offset;
+	uint32_t writeSize;
+	uint32_t ul_page_addr;
+	uint16_t us_padding;
+	uint32_t ul_error;
+	uint32_t ul_idx;
+	uint32_t *p_aligned_dest;
+	uint8_t *puc_page_buffer = (uint8_t *) gs_ul_page_buffer;
+
+	translate_address(&p_efc, ul_address, &us_page, &us_offset);
+
+	/* According to the errata, set the wait state value to 6. */
+	ul_fws_temp = efc_get_wait_state(p_efc);
+	efc_set_wait_state(p_efc, 6);
+
+	/* Write all pages */
+	while (ul_size > 0) {
+		/* Copy data in temporary buffer to avoid alignment problems. */
+		writeSize = Min((uint32_t) IFLASH_PAGE_SIZE - us_offset,
+				ul_size);
+		compute_address(p_efc, us_page, 0, &ul_page_addr);
+		us_padding = IFLASH_PAGE_SIZE - us_offset - writeSize;
+
+		/* Pre-buffer data */
+		memcpy(puc_page_buffer, (void *)ul_page_addr, us_offset);
+
+		/* Buffer data */
+		memset(puc_page_buffer + us_offset, value, writeSize);
+
+		/* Post-buffer data */
+		memcpy(puc_page_buffer + us_offset + writeSize,
+				(void *)(ul_page_addr + us_offset + writeSize),
+				us_padding);
+
+		/* Write page.
+		 * Writing 8-bit and 16-bit data is not allowed and may lead to
+		 * unpredictable data corruption.
+		 */
+		p_aligned_dest = (uint32_t *) ul_page_addr;
+		for (ul_idx = 0; ul_idx < (IFLASH_PAGE_SIZE / sizeof(uint32_t));
+				++ul_idx) {
+			*p_aligned_dest++ = gs_ul_page_buffer[ul_idx];
+		}
+
+		if (ul_erase_flag) {
+			ul_error = efc_perform_command(p_efc, EFC_FCMD_EWP,
+					us_page);
+		} else {
+			ul_error = efc_perform_command(p_efc, EFC_FCMD_WP,
+					us_page);
+		}
+
+		if (ul_error) {
+			return ul_error;
+		}
+
+		/* Progression */
+		ul_size -= writeSize;
+		us_page++;
+		us_offset = 0;
+	}
+
+	/* According to the errata, restore the wait state value. */
+	efc_set_wait_state(p_efc, ul_fws_temp);
+
+	return FLASH_RC_OK;
+}
+
+
+/**
  * \brief Lock all the regions in the given address range. The actual lock
  * range is reported through two output parameters.
  *
@@ -914,3 +1009,5 @@ uint32_t flash_erase_user_signature(void)
 #endif
 /**INDENT-ON**/
 /// @endcond
+
+#endif /*SAM3XA_SERIES*/

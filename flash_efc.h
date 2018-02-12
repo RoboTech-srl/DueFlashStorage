@@ -44,8 +44,6 @@
 #ifndef FLASH_H_INCLUDED
 #define FLASH_H_INCLUDED
 
-#include <Arduino.h>
-
 /* Internal Flash 0 base address. */
 #define IFLASH_ADDR     IFLASH0_ADDR
 	/* Internal flash page size. */
@@ -119,6 +117,8 @@ uint32_t flash_erase_sector(uint32_t ul_address);
 #endif
 
 uint32_t flash_write(uint32_t ul_address, const void *p_buffer,
+		uint32_t ul_size, uint32_t ul_erase_flag);
+uint32_t flash_fill(uint32_t ul_address, const uint8_t value,
 		uint32_t ul_size, uint32_t ul_erase_flag);
 uint32_t flash_lock(uint32_t ul_start, uint32_t ul_end,
 		uint32_t *pul_actual_start, uint32_t *pul_actual_end);
