@@ -38,14 +38,10 @@ struct Configuration {
 Configuration configuration;
 
 // then write it to flash like this:
-byte b2[sizeof(Configuration)]; // create byte array to store the struct
-memcpy(b2, &configuration, sizeof(Configuration)); // copy the struct to the byte array
-dueFlashStorage.write(4, b2, sizeof(Configuration)); // write byte array to flash at address 4
+dueFlashStorage.write(4, (byte*)&configuration, sizeof(Configuration)); // write to flash at address 4
 
 // and read from flash like this:
-byte* b = dueFlashStorage.readAddress(4); // byte array which is read from flash at adress 4
-Configuration configurationFromFlash; // create a temporary struct
-memcpy(&configurationFromFlash, b, sizeof(Configuration)); // copy byte array to temporary struct
+memcpy(&configuration, dueFlashStorage.readAddress(4), sizeof(Configuration)); // read from flash at address 4
 
 /* see example code for a working example */
 ```
