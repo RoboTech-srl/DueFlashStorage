@@ -90,7 +90,7 @@ bool DueFlashStorage::write(uint32_t address, byte *data, uint32_t dataLength)
     }
     
     // write back orginal data, overwritten by source buffer
-    for (int i = 0; i < FLASH_PAGE_SIZE / sizeof(uint64_t); ++i)
+    for (unsigned int i = 0; i < FLASH_PAGE_SIZE / sizeof(uint64_t); ++i)
     {
       if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, (uint32_t)padr, page_buffer[i]) != HAL_OK)
       {
@@ -152,7 +152,7 @@ bool DueFlashStorage::write(uint32_t address, byte value, uint32_t dataLength)
     }
     
     // write back orginal data, overwritten by source buffer
-    for (int i = 0; i < FLASH_PAGE_SIZE / sizeof(uint64_t); ++i)
+    for (unsigned int i = 0; i < FLASH_PAGE_SIZE / sizeof(uint64_t); ++i)
     {
       if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, (uint32_t)padr, page_buffer[i]) != HAL_OK)
       {
