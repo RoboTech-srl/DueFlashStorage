@@ -1,7 +1,6 @@
 #include "DueFlashStorage.h"
 
-#if OPENTRACKER_HW_REV >= 0x0200 && OPENTRACKER_HW_REV <= 0x02FF
-// OpenTracker v2
+#if defined(_SAM3XA_)
 
 #include "flash_efc.h"
 
@@ -41,8 +40,7 @@ bool DueFlashStorage::write(uint32_t address, byte value, uint32_t dataLength)
   return true;
 }
 
-#elif OPENTRACKER_HW_REV >= 0x0300 && OPENTRACKER_HW_REV <= 0x03FF
-// OpenTracker v3
+#elif defined(_STM32_DEF_)
 
 #include <strings.h>
 

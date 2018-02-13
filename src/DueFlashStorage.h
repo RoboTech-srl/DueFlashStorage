@@ -16,16 +16,38 @@ Rewritten and modified by Sebastian Nilsson
 
 #include <Arduino.h>
 
-#if OPENTRACKER_HW_REV >= 0x0200 && OPENTRACKER_HW_REV <= 0x02FF
-// OpenTracker v2
-#define FLASH_STORAGE_START (IFLASH1_ADDR)
-#define FLASH_STORAGE_SIZE  131072u
-#elif OPENTRACKER_HW_REV >= 0x0300 && OPENTRACKER_HW_REV <= 0x03FF
-// OpenTracker v3
-#define FLASH_STORAGE_START (FLASH_BASE + 131072u)
-#define FLASH_STORAGE_SIZE  131072u
+#if defined(_SAM3XA_)
+// On SAM3X/SAM3A default to using the second flash bank
+
+#ifndef FLASH_STORAGE_START
+#define FLASH_STORAGE_START IFLASH1_ADDR
+#endif
+
+#ifndef FLASH_STORAGE_SIZE
+#define FLASH_STORAGE_SIZE  IFLASH1_SIZE
+#endif
+
+#elif defined(_STM32_DEF_)
+// On STM32 default to using second flash bank or half the available flash
+
+#ifndef FLASH_STORAGE_START
+#ifndef FLASH_BANK_2
+#define FLASH_STORAGE_START (FLASH_BASE + (FLASH_SIZE/2))
 #else
-#error "DueFlashStorage library not supported on this platform!"
+#define FLASH_STORAGE_START (FLASH_BASE + FLASH_BANK_SIZE)
+#endif
+#endif
+
+#ifndef FLASH_STORAGE_SIZE
+#ifndef FLASH_BANK_2
+#define FLASH_STORAGE_SIZE  (FLASH_SIZE/2)
+#else
+#define FLASH_STORAGE_SIZE  FLASH_BANK_SIZE
+#endif
+#endif
+
+#else
+#error "DueFlashStorage library not supported on this hardware platform!"
 #endif
 
 //  DueFlash is the main class for flash functions
