@@ -777,6 +777,8 @@ uint32_t flash_is_locked(uint32_t ul_start, uint32_t ul_end)
 
 	/* Retrieve lock status */
 	ul_error = efc_perform_command(p_efc, EFC_FCMD_GLB, 0);
+	if (ul_error == EFC_RC_NOT_SUPPORT)
+		return 0;
 
 	/* Skip unrequested regions (if necessary) */
 	ul_status = efc_get_result(p_efc);

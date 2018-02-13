@@ -6,10 +6,8 @@
 
 DueFlashStorage::DueFlashStorage()
 {
-  uint32_t retCode;
-
   /* Initialize flash: 6 wait states for flash writing. */
-  retCode = flash_init(FLASH_ACCESS_MODE_128, 6);
+  flash_init(FLASH_ACCESS_MODE_128, 6);
 }
 
 boolean DueFlashStorage::write(uint32_t address, byte *data, uint32_t dataLength)
