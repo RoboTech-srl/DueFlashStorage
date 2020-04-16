@@ -56,7 +56,10 @@ bool DueFlashStorage::write(uint32_t address, byte *data, uint32_t dataLength)
   if (dataLength == 0)
     return true;
   
-  HAL_FLASH_Unlock();
+  if (HAL_FLASH_Unlock() != HAL_OK) {
+    //SerialUSB.println("HAL_FLASH_Unlock failed");
+    return false;
+  }
 
   uint32_t page = (FLASH_STORAGE_START + address - FLASH_BASE) / FLASH_PAGE_SIZE;
   uint32_t offs = (FLASH_STORAGE_START + address - FLASH_BASE) % FLASH_PAGE_SIZE;
@@ -74,6 +77,9 @@ bool DueFlashStorage::write(uint32_t address, byte *data, uint32_t dataLength)
     if (offs + size < FLASH_PAGE_SIZE)
       memcpy((uint8_t*)page_buffer + offs + size, padr + offs + size, FLASH_PAGE_SIZE - (offs + size));
 
+    // Clear errors (OPTVERR bit set on virgin samples?)
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_OPTVERR);
+
     // erase current page
     EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
     EraseInitStruct.Banks       = FLASH_BANK_1;
@@ -83,6 +89,9 @@ bool DueFlashStorage::write(uint32_t address, byte *data, uint32_t dataLength)
     uint32_t PAGEError = 0;
     if (HAL_FLASHEx_Erase(&EraseInitStruct, &PAGEError) != HAL_OK)
     {
+      //SerialUSB.println("HAL_FLASHEx_Erase failed");
+      //SerialUSB.println(PAGEError,HEX);
+      //SerialUSB.println(HAL_FLASH_GetError(),HEX);
       HAL_FLASH_Lock();
       return false;
     }
@@ -92,6 +101,9 @@ bool DueFlashStorage::write(uint32_t address, byte *data, uint32_t dataLength)
     {
       if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, (uint32_t)padr, page_buffer[i]) != HAL_OK)
       {
+        //SerialUSB.print("HAL_FLASH_Program failed");
+        //SerialUSB.println((uint32_t)padr);
+        //SerialUSB.println(i);
         HAL_FLASH_Lock();
         return false;
       }
